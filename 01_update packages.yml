@@ -1,0 +1,11 @@
+---
+- name: Upgrade all packages to the latest version
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Upgrade all packages to latest
+      ansible.builtin.yum:
+        name: '*'
+        state: latest
+        update_cache: yes
