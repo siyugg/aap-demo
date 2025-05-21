@@ -1,0 +1,29 @@
+---
+- name: Allow firewall ports for demo
+  hosts: all
+  become: yes
+  vars:
+    demo_ports:
+      - 80/tcp    # HTTP
+      - 443/tcp   # HTTPS
+      - 8080/tcp  # Custom demo port
+
+  tasks:
+    - name: Install firewalld
+      ansible.builtin.yum:
+        name: firewalld
+        state: present
+
+    - name: Ensure firewalld is running and enabled
+      ansible.builtin.service:
+        name: firewalld
+        state: started
+        enabled: yes
+
+    - name: Open demo ports
+      ansible.posix.firewalld:
+        port: "{{ item }}"
+        state: enabled
+        permanent: yes
+        immediate: yes
+      loop: "{{ demo_ports }}"
