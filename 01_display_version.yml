@@ -1,0 +1,16 @@
+---
+- name: Display package versions
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Gather package facts
+      ansible.builtin.package_facts:
+        manager: auto
+
+    - name: Show versions
+      ansible.builtin.debug:
+        msg: "Package: {{ item }} | Version: {{ ansible_facts.packages[item][0].version | default('not installed') }}"
+      loop:
+        - httpd
+        - mariadb
