@@ -1,0 +1,79 @@
+---
+- name: Download requirements for amazon.aws collection
+  hosts: localhost
+  become: yes
+  vars:
+    package:
+      - python3.x86_64
+    pip_install:
+      - boto3>=1.28.0
+      - botocore>=1.31.0
+
+  tasks:
+    - name: Installing python3.x86_64
+      ansible.builtin.package:
+        name: "{{ package }}"
+        state: latest
+ 
+    - name: Ensure pip is latest version
+      ansible.builtin.pip:
+        name: pip
+        state: latest
+        executable: pip3
+
+    - name: Installing packages
+      ansible.builtin.pip:
+        name: "{{ pip_install }}"
+        state: latest
+        executable: pip3
+
+- name: Create and attach EBS volumes for RAID10
+  hosts: localhost
+  gather_facts: false
+  vars:
+    aws_region: ap-southeast-1
+    instance_id: i-056b69bc96c7b88bd  # instance = aap-demo-controller
+    volume_size: 10  # Size in GiB
+    volume_count: 4   # RAID10 requires 4 disks
+
+  tasks:
+    - name: Create EBS volumes and attach to instance
+      amazon.aws.ec2_vol:
+        instance: "{{ instance_id }}"
+        volume_size: "{{ volume_size }}"
+        volume_type: io1
+        region: "{{ aws_region }}"
+        zone: "{{ aws_region }}c"
+        encrypted: yes
+        state: present
+        multi_attach: true
+      loop: "{{ range(volume_count)|list }}"
+      register: ebs_volumes
+
+- name: Configure RAID10 using LVM
+  hosts: target1  # Group containing your EC2 instance
+  become: yes
+  vars:
+    storage_pools:
+      - name: raid10_pool
+        type: lvm
+        disks: "{{ ansible_devices | dict2items | map(attribute='key') | select('match', '^nvme.*') | reject('match', 'nvme0n1') | list }}"
+        raid_level: raid10
+        volumes:
+          - name: raid10_volume
+            size: "100%FREE"
+            fs_type: xfs
+            mount_point: /mnt/raid10
+
+  roles:
+    - role: rhel-system-roles.storage
+
+  tasks:
+    - name: Verify RAID configuration
+      ansible.builtin.command: lvs -a -o +devices
+      register: lvs_output
+      changed_when: false
+
+    - name: Display RAID configuration
+      ansible.builtin.debug:
+        var: lvs_output.stdout_lines

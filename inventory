@@ -1,0 +1,8 @@
+[target1]
+aap.demo.target
+
+[target2]
+aap.demo.extra
+
+[controller]
+aap.demo.local
