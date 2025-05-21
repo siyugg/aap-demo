@@ -1,23 +1,26 @@
 ---
-- name: Show complete firewall port configuration
+- name: Enable port 8081/tcp and show firewall port information
   hosts: all
   become: yes
-  tasks:
-    - name: Install required packages
-      ansible.builtin.yum:
-        name:
-          - firewalld
-          - python3-firewall
-        state: present
-      when: ansible_os_family == 'RedHat'
+  vars:
+    demo_ports:
+      - 80/tcp    # HTTP
+      - 443/tcp   # HTTPS
+      - 8080/tcp  # Custom demo port
+      - 8081/tcp
 
-    - name: permanently enable firewalld service, also enable it immediately if possible
+  tasks:
+    - name: Permit traffic in default zone on ports
       ansible.posix.firewalld:
-        service: firewalld
-        state: enabled
+        port: "{{ item }}"
         permanent: true
-        immediate: true
-        offline: true
+        state: enabled
+      loop: "{{ demo_ports }}"
+
+    - name: Reload firewalld to apply changes
+      ansible.builtin.service:
+        name: firewalld
+        state: reloaded
 
     - name: Gather firewalld configuration
       ansible.posix.firewalld_info:

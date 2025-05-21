@@ -1,0 +1,29 @@
+---
+- name: Disable port 8081/tcp and show firewall port information
+  hosts: all
+  become: yes
+  tasks:
+    - name: Do not permit traffic in default zone on port 8081/tcp
+      ansible.posix.firewalld:
+        port: 8081/tcp
+        permanent: true
+        state: disabled
+
+    - name: Reload firewalld to apply changes
+      ansible.builtin.service:
+        name: firewalld
+        state: reloaded
+
+    - name: Gather firewalld configuration
+      ansible.posix.firewalld_info:
+        active_zones: yes
+      register: firewalld_info
+
+    - name: Output open ports per zone
+      ansible.builtin.debug:
+        msg: |
+          {% for zone, details in firewalld_info.firewalld_info.zones.items() %}
+          Zone: {{ zone }}
+            Ports: {{ details.ports | default('None') }}
+            Services: {{ details.services | default('None') }}
+          {% endfor %}
