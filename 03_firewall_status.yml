@@ -11,17 +11,24 @@
         state: present
       when: ansible_os_family == 'RedHat'
 
-    - name: Ensure firewalld is running
-      ansible.builtin.service:
-        name: firewalld
-        state: started
-        enabled: yes
+    - name: permanently enable firewalld service, also enable it immediately if possible
+      ansible.posix.firewalld:
+        service: firewalld
+        state: enabled
+        permanent: true
+        immediate: true
+        offline: true
 
-    - name: Gather full firewall facts
+    - name: Gather firewalld configuration
       ansible.posix.firewalld_info:
         active_zones: yes
-        zones: all
-        services: yes
-        ports: yes
-        rich_rules: yes
-      register: firewall_info
+      register: firewalld_info
+
+    - name: Output open ports per zone
+      ansible.builtin.debug:
+        msg: |
+          {% for zone, details in firewalld_info.firewalld_info.zones.items() %}
+          Zone: {{ zone }}
+            Ports: {{ details.ports | default('None') }}
+            Services: {{ details.services | default('None') }}
+          {% endfor %}
