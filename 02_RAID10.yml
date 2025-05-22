@@ -1,7 +1,7 @@
 ---
 - name: Download requirements for amazon.aws collection
   hosts: localhost
-  become: yes
+  become: true
   vars:
     package:
       - python3.x86_64
@@ -57,7 +57,7 @@
 
 - name: Configure RAID10 using LVM
   hosts: target1  # Group containing your EC2 instance
-  become: yes
+  become: true
   vars:
     storage_pools:
       - name: raid10_pool

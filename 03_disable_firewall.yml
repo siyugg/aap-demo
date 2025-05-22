@@ -1,7 +1,7 @@
 ---
 - name: Disable port 8081/tcp and show firewall port information
   hosts: all
-  become: yes
+  become: true
   tasks:
     - name: Do not permit traffic in default zone on port 8081/tcp
       ansible.posix.firewalld:

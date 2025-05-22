@@ -1,7 +1,7 @@
 ---
 - name: Ensure specific packages are installed at a specific (older) version
   hosts: all
-  become: yes
+  become: true
   vars:
     packages:
       - name: httpd

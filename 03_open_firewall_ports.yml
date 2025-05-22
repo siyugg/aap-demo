@@ -1,7 +1,7 @@
 ---
-- name: Enable port 8081/tcp and show firewall port information
+- name: Enable ports and show firewall port information
   hosts: all
-  become: yes
+  become: true
   vars:
     demo_ports:
       - 80/tcp    # HTTP
