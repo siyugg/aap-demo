@@ -1,7 +1,7 @@
 ---
 - name: Upgrade all packages to the latest version
   hosts: all
-  become: yes
+  become: true
 
   tasks:
     - name: Upgrade all packages to latest
