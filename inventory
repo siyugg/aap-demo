@@ -1,8 +1,5 @@
-[target1]
+[target]
 aap.demo.target
-
-[target2]
-aap.demo.extra
 
 [controller]
 aap.demo.local

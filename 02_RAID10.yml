@@ -35,6 +35,7 @@
     instance_id: i-056b69bc96c7b88bd  # instance = aap-demo-controller
     volume_size: 10  # Size in GiB
     volume_count: 4   # RAID10 requires 4 disks
+    device_names: ["/dev/sdf", "/dev/sdg", "/dev/sdh", "/dev/sdi"]
 
   tasks:
     - name: Create EBS volumes and attach to instance
@@ -42,12 +43,16 @@
         instance: "{{ instance_id }}"
         volume_size: "{{ volume_size }}"
         volume_type: io1
+        iops: 100
         region: "{{ aws_region }}"
         zone: "{{ aws_region }}c"
         encrypted: yes
         state: present
         multi_attach: true
+        device_name: "{{ device_names[item] }}"  # Use unique device name
       loop: "{{ range(volume_count)|list }}"
+      loop_control:
+        index_var: item  # Get loop index
       register: ebs_volumes
 
 - name: Configure RAID10 using LVM
