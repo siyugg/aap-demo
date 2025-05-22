@@ -5,7 +5,6 @@
 
   tasks:
     - name: Upgrade all packages to latest
-      ansible.builtin.yum:
-        name: '*'
+      ansible.builtin.dnf:
+        name: "*"
         state: latest
-        update_cache: yes
