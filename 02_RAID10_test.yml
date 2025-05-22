@@ -1,0 +1,84 @@
+---
+- name: Attach EBS volumes and configure RAID10
+  hosts: localhost  # Run on control node for AWS operations
+  vars:
+    aws_region: ap-southeast-1
+    instance_id: i-056b69bc96c7b88bd
+    volume_ids:  # List your existing EBS volume IDs
+      - vol-019a22f7624354f4c
+      - vol-031ed2ba59631319d
+      - vol-0b4ec1f38af8ab13e
+      - vol-083c03e33c7b56ecc
+    device_names:  # Device mapping for EC2 instance
+      - /dev/sdf
+      - /dev/sdg
+      - /dev/sdh
+      - /dev/sdi
+    mount_point: /mnt/raid10
+    filesystem: xfs
+
+   tasks:
+    - name: Attach EBS volumes to instance
+      amazon.aws.ec2_vol:
+        id: "{{ item.0 }}"
+        instance: "{{ instance_id }}"
+        device_name: "{{ item.1 }}"
+        region: "{{ aws_region }}"
+        state: present
+      loop: "{{ volume_ids | zip(device_names) | list }}"
+
+- name: Configure RAID10 on target host
+  hosts: target_host
+  become: yes
+  vars:
+    raid_devices: ["/dev/sdf", "/dev/sdg", "/dev/sdh", "/dev/sdi"]
+    raid_device: /dev/md0
+    mount_point: /mnt/raid10
+    filesystem: xfs
+
+  tasks:
+    - name: Install required packages
+      ansible.builtin.yum:
+        name:
+          - mdadm
+          - xfsprogs
+        state: present
+
+    - name: Wait for devices to be available
+      ansible.builtin.wait_for:
+        path: "{{ item }}"
+        timeout: 120
+      loop: "{{ raid_devices }}"
+
+    - name: Create RAID10 array
+      ansible.builtin.shell: |
+        mdadm --create {{ raid_device }} --level=10 --raid-devices=4 {{ raid_devices | join(' ') }} --force
+      args:
+        creates: "{{ raid_device }}"
+
+    - name: Create filesystem
+      ansible.builtin.filesystem:
+        fstype: "{{ filesystem }}"
+        dev: "{{ raid_device }}"
+
+    - name: Create mount point
+      ansible.builtin.file:
+        path: "{{ mount_point }}"
+        state: directory
+        mode: 0755
+
+    - name: Mount RAID array
+      ansible.builtin.mount:
+        path: "{{ mount_point }}"
+        src: "{{ raid_device }}"
+        fstype: "{{ filesystem }}"
+        state: mounted
+
+    - name: Persist RAID configuration
+      ansible.builtin.shell: "mdadm --detail --scan >> /etc/mdadm.conf"
+      args:
+        creates: /etc/mdadm.conf
+
+    - name: Update initramfs (RHEL/CentOS)
+      ansible.builtin.command: dracut -f --regenerate-all
+      when: ansible_distribution in ['RedHat', 'CentOS', 'Amazon']
