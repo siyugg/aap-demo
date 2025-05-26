@@ -11,7 +11,7 @@
         port: "{{ item }}"
         permanent: true
         state: enabled
-      loop: "{{ demo_ports }}"
+      loop: "{{ demo_ports_enable }}"
 
     - name: Reload firewalld to apply changes
       ansible.builtin.service:

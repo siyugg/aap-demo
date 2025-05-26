@@ -21,7 +21,7 @@
     
     - name: Do not permit traffic in default zone on port 8081/tcp
       ansible.posix.firewalld:
-        port: 8081/tcp
+        port: "{{ demo_ports_disable }}"
         permanent: true
         state: disabled
       notify: Reload firewalld
