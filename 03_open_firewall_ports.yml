@@ -4,19 +4,37 @@
   become: true
   vars_files:
     - 03_define_ports.yml
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    smtp_host: smtp.gmail.com
+    admin_email: wentan.redhat@gmail.com
 
   tasks:
+    - name: Install firewalld and Python bindings
+      ansible.builtin.yum:
+        name:
+          - firewalld
+          - python3-firewall  # Required for RHEL/CentOS 8+
+        state: present
+      notify: Reload firewalld
+
+    - name: Ensure firewalld is running
+      ansible.builtin.service:
+        name: firewalld
+        state: started
+        enabled: yes
+
     - name: Permit traffic in default zone on ports
       ansible.posix.firewalld:
         port: "{{ item }}"
         permanent: true
         state: enabled
       loop: "{{ demo_ports_enable }}"
+      register: port_changes
+      notify: Reload firewalld
 
-    - name: Reload firewalld to apply changes
-      ansible.builtin.service:
-        name: firewalld
-        state: reloaded
+    - name: Flush handlers to apply changes immediately
+      meta: flush_handlers
 
     - name: Gather firewalld configuration
       ansible.posix.firewalld_info:
@@ -31,3 +49,38 @@
             Ports: {{ details.ports | default('None') }}
             Services: {{ details.services | default('None') }}
           {% endfor %}
+          
+    - name: Build firewall configuration report
+      ansible.builtin.set_fact:
+        firewall_report: |
+          FIREWALL CONFIGURATION report
+          =============================
+          {% for zone, details in firewalld_info.firewalld_info.zones.items() %}
+          Zone: {{ zone }}
+            Ports: {{ details.ports | default('NONE') | join(', ') }}
+            Services: {{ details.services | default('NONE') | join(', ') }}
+          {% endfor %}
+
+          Host: {{ inventory_hostname }}
+          Timestamp: {{ ansible_date_time.iso8601 }}
+          Changes made: {{ port_changes.changed }}
+
+    - name: Send firewall configuration email
+      community.general.mail:
+        host: "{{ smtp_host }}"
+        port: 587
+        secure: starttls
+        username: "wentan.redhat@gmail.com"
+        password: wgnc sbef cfmb xbwu
+        to: "{{ admin_email }}"
+        subject: "Firewall Configuration Report - {{ inventory_hostname }}"
+        body: "{{ firewall_report }}"
+      when: port_changes.changed
+      delegate_to: localhost
+    
+
+  handlers:
+    - name: Reload firewalld 
+      ansible.builtin.service:
+        name: firewalld
+        state: reloaded
