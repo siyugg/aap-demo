@@ -2,12 +2,8 @@
 - name: Enable ports and show firewall port information
   hosts: all
   become: true
-  vars:
-    demo_ports:
-      - 80/tcp    # HTTP
-      - 443/tcp   # HTTPS
-      - 8080/tcp  # Custom demo port
-      - 8081/tcp
+  vars_files:
+    - 03_define_ports.yml
 
   tasks:
     - name: Permit traffic in default zone on ports

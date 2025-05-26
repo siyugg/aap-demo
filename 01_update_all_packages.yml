@@ -1,0 +1,48 @@
+---
+- name: Update packages and send notification
+  hosts: all
+  become: yes
+  vars_files:
+    - 01_var_packages_new.yml
+  vars:
+    smtp_host: smtp.gmail.com
+    admin_email: wentan.redhat@gmail.com
+
+  tasks:
+    - name: Update all to latest version
+      ansible.builtin.dnf:
+        name: "{{ item.name }}"
+        state: latest
+      loop: "{{ packages }}"
+      register: update_result
+
+    - name: Get installed package version
+      ansible.builtin.shell: |
+        rpm -q --queryformat '%{VERSION}-%{RELEASE}\n' "{{ item.name }}"
+      register: package_versions
+      loop: "{{ packages }}"
+      changed_when: false
+
+    - name: Build consolidated update message
+      ansible.builtin.set_fact:
+        consolidated_message: |
+          {% set message_lines = [] %}
+          {% for result in package_versions.results %}
+            Package {{ result.item.name }} updated to version {{ result.stdout }}
+          {% endfor %}
+
+          Host: {{ inventory_hostname }}
+          Timestamp: {{ ansible_date_time.iso8601 }}
+
+    - name: Send success notification email
+      community.general.mail:
+        host: "{{ smtp_host }}"
+        port: 587
+        username: wentan.redhat@gmail.com
+        password: wgnc sbef cfmb xbwu
+        from: "Ansible Notifier <wentan.redhat@gmail.com>"
+        to: "{{ admin_email }}"
+        subject: " Package update succeeded on {{ inventory_hostname }}"
+        body: "{{ consolidated_message }}"
+      when: update_result.changed
+      delegate_to: localhost

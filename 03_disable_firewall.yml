@@ -2,17 +2,29 @@
 - name: Disable port 8081/tcp and show firewall port information
   hosts: all
   become: true
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
   tasks:
+    - name: Install firewalld and Python bindings
+      ansible.builtin.yum:
+        name:
+          - firewalld
+          - python3-firewall  # Required for RHEL/CentOS 8+
+        state: present
+      notify: Reload firewalld
+
+    - name: Ensure firewalld is running
+      ansible.builtin.service:
+        name: firewalld
+        state: started
+        enabled: yes
+    
     - name: Do not permit traffic in default zone on port 8081/tcp
       ansible.posix.firewalld:
         port: 8081/tcp
         permanent: true
         state: disabled
-
-    - name: Reload firewalld to apply changes
-      ansible.builtin.service:
-        name: firewalld
-        state: reloaded
+      notify: Reload firewalld
 
     - name: Gather firewalld configuration
       ansible.posix.firewalld_info:
@@ -27,3 +39,9 @@
             Ports: {{ details.ports | default('None') }}
             Services: {{ details.services | default('None') }}
           {% endfor %}
+
+  handlers:
+    - name: Reload firewalld to apply changes
+      ansible.builtin.service:
+        name: firewalld
+        state: reloaded
