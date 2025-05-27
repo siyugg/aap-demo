@@ -17,7 +17,7 @@
     mount_point: /mnt/raid10
     filesystem: xfs
 
-   tasks:
+    tasks:
     - name: Attach EBS volumes to instance
       amazon.aws.ec2_vol:
         id: "{{ item.0 }}"
@@ -28,7 +28,7 @@
       loop: "{{ volume_ids | zip(device_names) | list }}"
 
 - name: Configure RAID10 on target host
-  hosts: target_host
+  hosts: target
   become: yes
   vars:
     raid_devices: ["/dev/sdf", "/dev/sdg", "/dev/sdh", "/dev/sdi"]

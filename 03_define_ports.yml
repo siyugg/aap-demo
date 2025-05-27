@@ -1,0 +1,8 @@
+demo_ports_enable:
+  - 80/tcp    # HTTP
+  - 443/tcp   # HTTPS
+  - 8080/tcp  # Custom demo port
+  - 8081/tcp
+
+demo_ports_disable:
+  - 8081/tcp  

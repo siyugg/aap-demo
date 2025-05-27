@@ -1,0 +1,17 @@
+---
+- name: Install specific package versions
+  hosts: all
+  become: yes
+  vars_files:
+    - 01_var_packages_new.yml
+
+  tasks:
+    - name: Update package cache
+      ansible.builtin.dnf:
+        update_cache: yes
+
+    - name: Install specified package versions
+      ansible.builtin.dnf:
+        name: "{{ item.name }}-{{ item.version }}"
+        state: present
+      loop: "{{ packages }}"

@@ -2,6 +2,8 @@
 - name: Display package versions
   hosts: all
   become: true
+  vars_files:
+    - 01_var_packages_new.yml
 
   tasks:
     - name: Gather package facts
@@ -11,6 +13,4 @@
     - name: Show versions
       ansible.builtin.debug:
         msg: "Package: {{ item }} | Version: {{ ansible_facts.packages[item][0].version | default('not installed') }}"
-      loop:
-        - httpd
-        - mariadb
+      loop: "{{ packages }}" 

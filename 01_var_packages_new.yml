@@ -1,0 +1,9 @@
+packages:
+  - name: httpd
+    version: 2.4.62-4.el9
+  - name: mariadb
+    version: 3:10.5.27-1.el9_5
+  - name: nginx
+    version: 2:1.20.1-22.el9
+  - name: php
+    version: 8.0.30-3.el9_6
