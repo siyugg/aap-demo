@@ -1,0 +1,10 @@
+raid_devices:
+  - /dev/xvdb
+  - /dev/xvdc
+  - /dev/xvdd
+  - /dev/xvde
+raid_device: /dev/md0
+vg_name: vg_data
+lv_name: lv_data
+lv_size: 100%FREE
+mount_point: /mnt/data
