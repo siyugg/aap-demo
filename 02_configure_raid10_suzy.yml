@@ -5,7 +5,7 @@
   collections:
     - community.general
   vars_files:
-    - raid_config.yml
+    - 02_raid_config.yml
 
   tasks:
     - name: Install required packages
