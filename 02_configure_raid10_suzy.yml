@@ -1,6 +1,6 @@
 ---
 - name: Configure RAID10 with LVM for data disk
-  hosts: all
+  hosts: raid10target
   become: true
   collections:
     - community.general

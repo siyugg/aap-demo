@@ -1,0 +1,50 @@
+---
+- name: Revert RAID10 and LVM setup
+  hosts: raid10target
+  become: true
+  vars_files:
+    - 02_raid_config.yml
+
+  tasks:
+    - name: Unmount the logical volume
+      mount:
+        path: "{{ mount_point }}"
+        state: unmounted
+        fstype: ext4
+        src: "/dev/{{ vg_name }}/{{ lv_name }}"
+      ignore_errors: true
+
+    - name: Remove mount point directory
+      file:
+        path: "{{ mount_point }}"
+        state: absent
+
+    - name: Remove logical volume
+      command: lvremove -y /dev/{{ vg_name }}/{{ lv_name }}
+      ignore_errors: true
+
+    - name: Remove volume group
+      command: vgremove -y {{ vg_name }}
+      ignore_errors: true
+
+    - name: Remove physical volume
+      command: pvremove -y {{ raid_device }}
+      ignore_errors: true
+
+    - name: Stop RAID device
+      command: mdadm --stop {{ raid_device }}
+      ignore_errors: true
+
+    - name: Remove RAID device
+      command: mdadm --remove {{ raid_device }}
+      ignore_errors: true
+
+    - name: Zero superblocks on RAID member devices
+      command: mdadm --zero-superblock --force {{ item }}
+      loop: "{{ raid_devices }}"
+      ignore_errors: true
+
+    - name: Remove mdadm config file
+      file:
+        path: /etc/mdadm/mdadm.conf
+        state: absent
