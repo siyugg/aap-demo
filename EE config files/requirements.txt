@@ -1,0 +1,6 @@
+sh==1.13.1
+jsonschema>=3.2.0,<4.0.1
+textfsm
+ttp
+xmltodict
+dnspython
