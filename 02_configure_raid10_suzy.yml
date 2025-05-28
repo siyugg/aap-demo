@@ -4,17 +4,8 @@
   become: true
   collections:
     - community.general
-  vars:
-    raid_devices:
-      - /dev/xvdb
-      - /dev/xvdc
-      - /dev/xvdd
-      - /dev/xvde
-    raid_device: /dev/md0
-    vg_name: vg_data
-    lv_name: lv_data
-    lv_size: 100%FREE
-    mount_point: /mnt/data
+  vars_files:
+    - 02_raid_config.yml
 
   tasks:
     - name: Install required packages
@@ -23,14 +14,18 @@
           - mdadm
           - lvm2
         state: present
+
     - name: Zero superblocks on all devices
       command: mdadm --zero-superblock --force {{ item }}
       loop: "{{ raid_devices }}"
       ignore_errors: yes
+
     - name: Create RAID10 array
       command: >
-        mdadm --create {{ raid_device }} --level=10 --raid-devices={{ raid_devices | length }}
-        {{ raid_devices | join('') }}
+        mdadm --create {{ raid_device }}
+              --level=10
+              --raid-devices={{ raid_devices | length }}
+              {% for d in raid_devices %}{{ d }} {% endfor %}
       args:
         creates: "{{ raid_device }}"
 
@@ -41,9 +36,11 @@
       until: raid_stat.stat.exists
       retries: 5
       delay: 3
+
     - name: Create mdadm.conf for persistent RAID
       command: mdadm --detail --scan
       register: mdadm_detail
+
     - name: Ensure /etc/mdadm directory exists
       file:
         path: /etc/mdadm
@@ -54,36 +51,43 @@
       copy:
         dest: /etc/mdadm/mdadm.conf
         content: "{{ mdadm_detail.stdout }}\n"
+
     - name: Create physical volume on RAID device
       command: pvcreate {{ raid_device }}
       args:
         creates: /dev/{{ raid_device | basename }}
       register: pvcreate_result
       ignore_errors: false
+
     - name: Create Volume group
       community.general.lvg:
         vg: "{{ vg_name }}"
         pvs: "{{ raid_device }}"
+
     - name: Create logical volume
       community.general.lvol:
         lv: "{{ lv_name }}"
         vg: "{{ vg_name }}"
         size: "{{ lv_size }}"
         shrink: false
+
     - name: Create filesystem
       community.general.filesystem:
         fstype: ext4
         dev: "/dev/{{ vg_name }}/{{ lv_name }}"
+
     - name: Create mount point
       file:
         path: "{{ mount_point }}"
         state: directory
+
     - name: Mount logical volume
       mount:
         path: "{{ mount_point }}"
         src: "/dev/{{ vg_name }}/{{ lv_name }}"
         fstype: ext4
         state: mounted
+
     - name: Ensure mount persists in fstab
       mount:
         path: "{{ mount_point }}"
