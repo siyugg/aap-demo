@@ -1,10 +1,19 @@
 ---
-version: 1
-build_arg_defaults:
-  EE_BASE_IMAGE: registry.redhat.io/ansible-automation-platform-22/ee-minimal-rhel8:latest
-  EE_BUILDER_IMAGE: registry.redhat.io/ansible-automation-platform-22/ansible-builder-rhel8:latest
+version: 3
+
+images:
+  base_image:
+    name: registry.redhat.io/ansible-automation-platform-25/ansible-builder-rhel9:latest
 
 dependencies:
   galaxy: requirements.yml
   python: requirements.txt
   system: bindep.txt
+  ansible_core:
+    package_pip: ansible-core
+  ansible_runner:
+    package_pip: ansible-runner
+
+      #additional_build_steps:
+  #append_base:
+  # - RUN alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11                                                                          
