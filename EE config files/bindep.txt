@@ -15,5 +15,6 @@ libyaml-devel
 
 # Utilities often required by modules in community.general
 iputils
-curl
+# curl
 wget
+python3-pip
