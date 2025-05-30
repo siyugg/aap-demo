@@ -95,3 +95,14 @@
         fstype: ext4
         opts: defaults
         state: present
+
+    - name: Show RAID10 and LVM configuration summary
+      ansible.builtin.debug:
+        msg:
+          - "RAID10 has been configured on disks: {{ raid_devices | join(', ') }}"
+          - "RAID device created: {{ raid_device }}"
+          - "Volume group created: {{ vg_name }}"
+          - "Logical volume created: {{ lv_name }}"
+          - "Logical volume path: /dev/{{ vg_name }}/{{ lv_name }}"
+          - "Logical volume size: {{ lv_size }}"
+          - "Mounted on: {{ mount_point }}"
