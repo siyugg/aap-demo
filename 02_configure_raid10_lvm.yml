@@ -14,7 +14,6 @@
           - mdadm
           - lvm2
         state: present
-
     - name: Zero superblocks on all devices
       command: mdadm --zero-superblock --force {{ item }}
       loop: "{{ raid_devices }}"
@@ -36,11 +35,9 @@
       until: raid_stat.stat.exists
       retries: 5
       delay: 3
-
     - name: Create mdadm.conf for persistent RAID
       command: mdadm --detail --scan
       register: mdadm_detail
-
     - name: Ensure /etc/mdadm directory exists
       file:
         path: /etc/mdadm
@@ -51,47 +48,77 @@
       copy:
         dest: /etc/mdadm/mdadm.conf
         content: "{{ mdadm_detail.stdout }}\n"
-
     - name: Create physical volume on RAID device
       command: pvcreate {{ raid_device }}
       args:
         creates: /dev/{{ raid_device | basename }}
       register: pvcreate_result
       ignore_errors: false
-
     - name: Create Volume group
       community.general.lvg:
         vg: "{{ vg_name }}"
         pvs: "{{ raid_device }}"
 
-    - name: Create logical volume
+    - name: Create logical volume for data
       community.general.lvol:
-        lv: "{{ lv_name }}"
+        lv: "{{ lv_data_name }}"
         vg: "{{ vg_name }}"
-        size: "{{ lv_size }}"
+        size: "{{ lv_data_size }}"
         shrink: false
 
-    - name: Create filesystem
+    - name: Create logical volume for backup
+      community.general.lvol:
+        lv: "{{ lv_backup_name }}"
+        vg: "{{ vg_name }}"
+        size: "{{ lv_backup_size }}"
+        shrink: false
+
+    - name: Create ext4 filesystem on data LV
       community.general.filesystem:
         fstype: ext4
-        dev: "/dev/{{ vg_name }}/{{ lv_name }}"
+        dev: "/dev/{{ vg_name }}/{{ lv_data_name }}"
 
-    - name: Create mount point
+    - name: Create ext4 filesystem on backup LV
+      community.general.filesystem:
+        fstype: ext4
+        dev: "/dev/{{ vg_name }}/{{ lv_backup_name }}"
+
+    - name: Create mount point for data
       file:
-        path: "{{ mount_point }}"
+        path: "{{ mount_point_data }}"
         state: directory
 
-    - name: Mount logical volume
+    - name: Create mount point for backup
+      file:
+        path: "{{ mount_point_backup }}"
+        state: directory
+
+    - name: Mount data logical volume
       mount:
-        path: "{{ mount_point }}"
-        src: "/dev/{{ vg_name }}/{{ lv_name }}"
+        path: "{{ mount_point_data }}"
+        src: "/dev/{{ vg_name }}/{{ lv_data_name }}"
         fstype: ext4
         state: mounted
 
-    - name: Ensure mount persists in fstab
+    - name: Mount backup logical volume
       mount:
-        path: "{{ mount_point }}"
-        src: "/dev/{{ vg_name }}/{{ lv_name }}"
+        path: "{{ mount_point_backup }}"
+        src: "/dev/{{ vg_name }}/{{ lv_backup_name }}"
+        fstype: ext4
+        state: mounted
+
+    - name: Ensure data mount persists in fstab
+      mount:
+        path: "{{ mount_point_data }}"
+        src: "/dev/{{ vg_name }}/{{ lv_data_name }}"
+        fstype: ext4
+        opts: defaults
+        state: present
+
+    - name: Ensure backup mount persists in fstab
+      mount:
+        path: "{{ mount_point_backup }}"
+        src: "/dev/{{ vg_name }}/{{ lv_backup_name }}"
         fstype: ext4
         opts: defaults
         state: present
@@ -102,7 +129,5 @@
           - "RAID10 has been configured on disks: {{ raid_devices | join(', ') }}"
           - "RAID device created: {{ raid_device }}"
           - "Volume group created: {{ vg_name }}"
-          - "Logical volume created: {{ lv_name }}"
-          - "Logical volume path: /dev/{{ vg_name }}/{{ lv_name }}"
-          - "Logical volume size: {{ lv_size }}"
-          - "Mounted on: {{ mount_point }}"
+          - "Logical volume created: {{ lv_data_name }} ({{ lv_data_size }}) → {{ mount_point_data }}"
+          - "Logical volume created: {{ lv_backup_name }} ({{ lv_backup_size }}) → {{ mount_point_backup }}"

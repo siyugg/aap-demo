@@ -6,21 +6,34 @@
     - 02_raid_config.yml
 
   tasks:
-    - name: Unmount the logical volume
+    - name: Unmount data LV
       mount:
-        path: "{{ mount_point }}"
+        path: "{{ mount_point_data }}"
         state: unmounted
         fstype: ext4
-        src: "/dev/{{ vg_name }}/{{ lv_name }}"
-      ignore_errors: true
+        src: "/dev/{{ vg_name }}/{{ lv_data_name }}"
+
+    - name: Unmount backup LV
+      mount:
+        path: "{{ mount_point_backup }}"
+        state: unmounted
+        fstype: ext4
+        src: "/dev/{{ vg_name }}/{{ lv_backup_name }}"
 
     - name: Remove mount point directory
       file:
-        path: "{{ mount_point }}"
+        path: "{{ mount_point_data }}"
         state: absent
-
+    - name: Remove backup mount point directory
+      file:
+        path: "{{ mount_point_backup }}"
+        state: absent
     - name: Remove logical volume
-      command: lvremove -y /dev/{{ vg_name }}/{{ lv_name }}
+      command: lvremove -y /dev/{{ vg_name }}/{{ lv_data_name }}
+      ignore_errors: true
+
+    - name: Remove backup logical volume
+      command: lvremove -y /dev/{{ vg_name }}/{{ lv_backup_name }}
       ignore_errors: true
 
     - name: Remove volume group
@@ -35,16 +48,29 @@
       command: mdadm --stop {{ raid_device }}
       ignore_errors: true
 
-    - name: Remove RAID device
+    - name: Remove RAID device (only if present)
       command: mdadm --remove {{ raid_device }}
+      when: raid_device_exists.stat.exists
+      ignore_errors: true
+      register: remove_raid_result
+      failed_when: false
+
+    - name: Check if RAID device exists
+      stat:
+        path: "{{ raid_device }}"
+      register: raid_device_exists
       ignore_errors: true
 
     - name: Zero superblocks on RAID member devices
       command: mdadm --zero-superblock --force {{ item }}
       loop: "{{ raid_devices }}"
-      ignore_errors: true
 
     - name: Remove mdadm config file
       file:
         path: /etc/mdadm/mdadm.conf
+        state: absent
+    - name: Remove data and backup mount entries from /etc/fstab
+      lineinfile:
+        path: /etc/fstab
+        regexp: "^/dev/{{ vg_name }}/"
         state: absent
