@@ -13,5 +13,5 @@
           {{ pkg.name }}-{{ pkg.version }}
           {% endfor %}
         state: present
-        allow_downgrade: yes
-        allowerasing: yes  # Required to remove conflicting dependencies
+        allow_downgrade: true
+        allowerasing: true  # Required to remove conflicting dependencies
