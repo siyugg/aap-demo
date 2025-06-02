@@ -1,6 +1,6 @@
 ---
 - name: Disable port 8081/tcp and show firewall port information
-  hosts: all
+  hosts: aap.demo.en1
   become: true
   vars_files:
     - 03_define_ports.yml

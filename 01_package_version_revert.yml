@@ -1,6 +1,6 @@
 ---
 - name: Ensure specific packages are installed at a specific (older) version
-  hosts: all
+  hosts: aap.demo.en1
   become: true
   vars_files:
     - 01_var_packages_old.yml
@@ -8,7 +8,10 @@
   tasks:
     - name: Install or downgrade packages to specified versions
       ansible.builtin.dnf:
-        name: "{{ item.name }}-{{ item.version }}"
+        name: |
+          {% for pkg in packages %}
+          {{ pkg.name }}-{{ pkg.version }}
+          {% endfor %}
         state: present
-        allow_downgrade: yes
-      loop: "{{ packages }}"
+        allow_downgrade: true
+        allowerasing: true  # Required to remove conflicting dependencies

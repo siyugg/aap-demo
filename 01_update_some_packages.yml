@@ -1,6 +1,6 @@
 ---
 - name: Install specific package versions
-  hosts: all
+  hosts: aap.demo.en1
   become: yes
   vars_files:
     - 01_var_packages_new.yml
