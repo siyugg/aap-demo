@@ -1,6 +1,6 @@
 ---
 - name: Enable ports and show firewall port information
-  hosts: all
+  hosts: target
   become: true
   vars_files:
     - 03_define_ports.yml
@@ -49,7 +49,7 @@
             Ports: {{ details.ports | default('None') }}
             Services: {{ details.services | default('None') }}
           {% endfor %}
-          
+
     - name: Build firewall configuration report
       ansible.builtin.set_fact:
         firewall_report: |
