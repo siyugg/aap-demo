@@ -1,6 +1,7 @@
 ---
 - name: Display package versions
-  hosts: target
+  hosts: aap.demo.en1
+
   become: true
   vars_files:
     - 01_var_packages_new.yml
