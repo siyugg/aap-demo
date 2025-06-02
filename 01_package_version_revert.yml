@@ -1,6 +1,6 @@
 ---
 - name: Ensure specific packages are installed at a specific (older) version
-  hosts: target
+  hosts: aap.demo.en1
   become: true
   vars_files:
     - 01_var_packages_old.yml

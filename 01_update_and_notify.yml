@@ -1,6 +1,6 @@
 ---
 - name: Update packages and send notification
-  hosts: target
+  hosts: aap.demo.en1
   become: yes
   vars_files:
     - 01_var_packages_new.yml
