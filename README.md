@@ -69,16 +69,8 @@ sudo dnf install httpd-2.4.3-7.el9
 Email is sent after package updates.  
 
 Sample configuration:
-```console
-name: Send update notification
-mail:
-host: smtp.example.com
-port: 25
-from: ansible@demo.org
-to: user@example.com
-subject: "System Update Completed"
-body: "Packages and system configuration have been updated successfully."
-```
+<img width="652.5" height="274.5" alt="Screenshot 2025-08-19 at 2 39 25 PM" src="https://github.com/user-attachments/assets/d26b1908-fe8d-4675-99ba-0f609ed380a6" />
+
 ---
 
 ### 2. 🔥 Configure Firewall
