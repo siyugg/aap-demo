@@ -71,16 +71,8 @@ Email is sent after package updates.
 ansible-playbook playbooks/notify.yml -i inventory/hosts
 ```
 Sample configuration:
-```console
-name: Send update notification
-mail:
-host: smtp.example.com
-port: 25
-from: ansible@demo.org
-to: user@example.com
-subject: "System Update Completed"
-body: "Packages and system configuration have been updated successfully."
-```
+<img width="1305" height="549" alt="Screenshot 2025-08-19 at 2 39 25 PM" src="https://github.com/user-attachments/assets/0e00c3e3-135b-4c1d-ab9a-1504e70e0de9" />
+
 ---
 
 ### 2. 🔥 Configure Firewall
