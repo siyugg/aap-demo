@@ -44,44 +44,43 @@ cd aap-demo
 
 ### 1. 🔄 Upgrade All System Packages
 Upgrades system packages to the latest available version.  
-
+```console
 ansible-playbook playbooks/upgrade.yml -i inventory/hosts
-
+```
 - If package is already latest → skip  
 - If update is applied → notify user via email  
 
 Manually downgrade/revert versions (example):
-
+```console
 sudo dnf list --showduplicates httpd
 sudo dnf remove httpd -y
 sudo dnf install httpd-2.4.3-7.el9
-
+```
 ---
 
 ### 2. 🔥 Configure Firewall
 Allows required ports such as HTTP/HTTPS.  
-
+```console
 ansible-playbook playbooks/firewalld.yml -i inventory/hosts
-
+```
 Example of what’s applied:
+```console
 name: Allow HTTP and HTTPS
 firewalld:
 service: "{{ item }}"
 permanent: yes
 state: enabled
 with_items:
-
-http
-
-https
-
+    - http
+    - https
+```
 ---
 
 ### 3. 💾 Configure LVM/RAID10 for Data Disk
 Checks for available disks, partitions them, and configures RAID10 via LVM.  
-
+```console
 ansible-playbook playbooks/storage.yml -i inventory/hosts
-
+```
 - If disks already exist → skip configuration  
 - If new disks are detected → partition and configure LVM/RAID10  
 - Supports AWS EBS volumes via `amazon.aws.ec2_vol`  
@@ -90,10 +89,11 @@ ansible-playbook playbooks/storage.yml -i inventory/hosts
 
 ### 4. 📧 Send Email Notifications
 Email is sent after package updates, storage configuration, or firewall changes.  
-
+```console
 ansible-playbook playbooks/notify.yml -i inventory/hosts
-
+```
 Sample configuration:
+```console
 name: Send update notification
 mail:
 host: smtp.example.com
@@ -102,7 +102,7 @@ from: ansible@demo.org
 to: user@example.com
 subject: "System Update Completed"
 body: "Packages and system configuration have been updated successfully."
-
+```
 ---
 
 ## 🛑 Known Issues
