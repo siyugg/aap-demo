@@ -1,7 +1,5 @@
 # 📘 AAP Demo – Ansible Playbooks for RHEL VM
 
-GitHub Repository: [siyugg/aap-demo](https://github.com/siyugg/aap-demo)
-
 This repository provides Ansible playbooks to:  
 
 - Update and manage packages on RHEL VMs  
@@ -56,6 +54,22 @@ sudo dnf list --showduplicates httpd
 sudo dnf remove httpd -y
 sudo dnf install httpd-2.4.3-7.el9
 ```
+## 📧 Send Email Notifications
+Email is sent after package updates.  
+```console
+ansible-playbook playbooks/notify.yml -i inventory/hosts
+```
+Sample configuration:
+```console
+name: Send update notification
+mail:
+host: smtp.example.com
+port: 25
+from: ansible@demo.org
+to: user@example.com
+subject: "System Update Completed"
+body: "Packages and system configuration have been updated successfully."
+```
 ---
 
 ### 2. 🔥 Configure Firewall
@@ -85,24 +99,6 @@ ansible-playbook playbooks/storage.yml -i inventory/hosts
 - If new disks are detected → partition and configure LVM/RAID10  
 - Supports AWS EBS volumes via `amazon.aws.ec2_vol`  
 
----
-
-### 4. 📧 Send Email Notifications
-Email is sent after package updates, storage configuration, or firewall changes.  
-```console
-ansible-playbook playbooks/notify.yml -i inventory/hosts
-```
-Sample configuration:
-```console
-name: Send update notification
-mail:
-host: smtp.example.com
-port: 25
-from: ansible@demo.org
-to: user@example.com
-subject: "System Update Completed"
-body: "Packages and system configuration have been updated successfully."
-```
 ---
 
 ## 🛑 Known Issues
