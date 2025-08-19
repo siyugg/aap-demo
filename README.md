@@ -23,21 +23,23 @@ Before running the playbooks:
 - **AWS CLI + credentials** if attaching EBS volumes  
 
 - **Python packages for AWS integration**
+```console
 pip install boto3 botocore
-
+```
 - Required collections/roles:
+```console
 ansible-galaxy collection install amazon.aws
 sudo dnf install rhel-system-roles -y
-
+```
 ---
 
 ## 🚀 Usage Guide
 
 Clone the repository:
-
+```console
 git clone https://github.com/siyugg/aap-demo.git
 cd aap-demo
-
+```
 ---
 
 ### 1. 🔄 Upgrade All System Packages
