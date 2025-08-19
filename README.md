@@ -65,39 +65,57 @@ sudo dnf list --showduplicates httpd
 sudo dnf remove httpd -y
 sudo dnf install httpd-2.4.3-7.el9
 ```
-## 📧 Send Email Notifications
+## 📧 Email Notifications
 Email is sent after package updates.  
-```console
-ansible-playbook playbooks/notify.yml -i inventory/hosts
-```
-Sample configuration:
-<img width="652.5" height="274.5" alt="Screenshot 2025-08-19 at 2 39 25 PM" src="https://github.com/user-attachments/assets/0e00c3e3-135b-4c1d-ab9a-1504e70e0de9" />
 
+Sample configuration:
+```console
+name: Send update notification
+mail:
+host: smtp.example.com
+port: 25
+from: ansible@demo.org
+to: user@example.com
+subject: "System Update Completed"
+body: "Packages and system configuration have been updated successfully."
+```
 ---
 
 ### 2. 🔥 Configure Firewall
-Allows required ports such as HTTP/HTTPS.  
-```console
-ansible-playbook playbooks/firewalld.yml -i inventory/hosts
-```
-Example of what’s applied:
-```console
-name: Allow HTTP and HTTPS
-firewalld:
-service: "{{ item }}"
-permanent: yes
-state: enabled
-with_items:
-    - http
-    - https
-```
+The 2_configure_firewall_ports/ folder contains playbooks to enable/disable ports, manage firewall rules, and send configuration reports via email.
+
+📦 Available Playbooks
+- **2_define_ports.yml**
+    - Defines which ports are to be enabled or disabled.
+- **2_open_firewall_ports.yml**
+    - Enables ports from 2_define_ports.yml (demo_ports_enable) and sends a configuration report to the admin email.
+
+    # Actions performed:
+        - Installs firewalld and required Python libraries
+        - Enables defined ports in the default zone
+        - Gathers firewall active zones and open ports
+        - Builds a firewall configuration report
+        - Sends an email notification (SMTP configuration required in playbook)
+
+- 2_disable_firewall.yml
+    - Disables ports listed in demo_ports_disable inside 2_define_ports.yml (e.g. 8081/tcp).
+Actions performed:
+
+Ensures firewalld is installed and running
+
+Disables the targeted ports from the firewall
+
+Gathers firewall status and open ports by zone
+
+Builds a firewall configuration report (timestamped, host-specific)
+
+Sends results via email only if changes were made
+
 ---
 
 ### 3. 💾 Configure LVM/RAID10 for Data Disk
 Checks for available disks, partitions them, and configures RAID10 via LVM.  
-```console
-ansible-playbook playbooks/storage.yml -i inventory/hosts
-```
+
 - If disks already exist → skip configuration  
 - If new disks are detected → partition and configure LVM/RAID10  
 - Supports AWS EBS volumes via `amazon.aws.ec2_vol`  
