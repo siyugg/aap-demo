@@ -45,12 +45,15 @@ The 1_update_packages_notify/ folder contains several playbooks to manage packag
 📦 Available Playbooks
 - 1_display_version.yml
     - Displays the currently installed version(s) of the defined packages.
+
 - 1_update_and_notify.yml
-Updates packages to the versions specified in 1_var_packages_new.yml and sends an email notification of any changes made.
+    - Updates packages to the versions specified in 1_var_packages_new.yml and sends an email notification of any changes made.
+
 - 1_package_version_revert.yml
-Reverts selected packages to older versions defined in 1_var_packages_old.yml.
+    - Reverts selected packages to older versions defined in 1_var_packages_old.yml.
+    
 - 1_update_to_specific_version.yml
-Updates packages to specific versions defined in 1_var_packages_new.yml (useful for version pinning or rolling forward selectively).
+    - Updates packages to specific versions defined in 1_var_packages_new.yml (useful for version pinning or rolling forward selectively).
 
 ## ⚙️ Notes
 - If package is already at the specified version → no changes applied.
