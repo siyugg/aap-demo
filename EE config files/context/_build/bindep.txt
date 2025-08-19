@@ -1,0 +1,21 @@
+# Development tools (compilers, make)
+gcc
+gcc-c++
+make
+
+# Python development headers (needed for building some Python dependencies)
+python3-devel
+
+# Common libraries required by community.general modules
+libffi-devel
+openssl-devel
+krb5-devel
+libselinux-devel
+libyaml-devel
+
+# Utilities often required by modules in community.general
+iputils
+# curl
+wget
+python3-pip
+ansible-core
