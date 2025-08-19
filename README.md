@@ -71,7 +71,7 @@ Email is sent after package updates.
 ansible-playbook playbooks/notify.yml -i inventory/hosts
 ```
 Sample configuration:
-<img width="1305" height="549" alt="Screenshot 2025-08-19 at 2 39 25 PM" src="https://github.com/user-attachments/assets/0e00c3e3-135b-4c1d-ab9a-1504e70e0de9" />
+<img width="652.5" height="274.5" alt="Screenshot 2025-08-19 at 2 39 25 PM" src="https://github.com/user-attachments/assets/0e00c3e3-135b-4c1d-ab9a-1504e70e0de9" />
 
 ---
 
