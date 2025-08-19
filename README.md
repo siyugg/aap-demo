@@ -97,19 +97,15 @@ The 2_configure_firewall_ports/ folder contains playbooks to enable/disable port
         - Builds a firewall configuration report
         - Sends an email notification (SMTP configuration required in playbook)
 
-- 2_disable_firewall.yml
+- **2_disable_firewall.yml**
     - Disables ports listed in demo_ports_disable inside 2_define_ports.yml (e.g. 8081/tcp).
-Actions performed:
 
-Ensures firewalld is installed and running
-
-Disables the targeted ports from the firewall
-
-Gathers firewall status and open ports by zone
-
-Builds a firewall configuration report (timestamped, host-specific)
-
-Sends results via email only if changes were made
+    # Actions performed:
+        - Ensures firewalld is installed and running
+        - Disables the targeted ports from the firewall
+        - Gathers firewall status and open ports by zone
+        - Builds a firewall configuration report (timestamped, host-specific)
+        - Sends results via email only if changes were made
 
 ---
 
